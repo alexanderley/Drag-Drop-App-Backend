@@ -5,7 +5,7 @@ const userSchema = new Schema({
   email: { type: String, unique: true, required: true },
   password: { type: String, required: true },
   name: { type: String, required: true },
-  shoppingCart: { type: Schema.Types.ObjectId, ref: "Shoppingcart" },
+  boards: [{ type: Schema.Types.ObjectId, ref: "Board" }],
   confirmed: {
     type: Boolean,
     default: false,

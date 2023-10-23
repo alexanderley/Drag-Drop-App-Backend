@@ -3,8 +3,8 @@ const { Schema, model } = mongoose;
 
 const taskSchema = new Schema({
   title: String,
-  description: String,
-  project: { type: Schema.Types.ObjectId, ref: "Project" },
+  draft: { type: Schema.Types.ObjectId, ref: "Draft" },
+  subtasks:[{ type: Schema.Types.ObjectId, ref: "Subtask"}]
 });
 
 module.exports = model("Task", taskSchema);

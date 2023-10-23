@@ -36,7 +36,6 @@ router.post('/signup', async(req, res, next) => {
   }
 
 
-
   try {
     const foundUser = await User.findOne({ email });
   
@@ -85,7 +84,7 @@ router.post('/signup', async(req, res, next) => {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });
   }
-});
+});9
 
 
 // POST  /auth/login - Verifies email and password and returns a JWT
