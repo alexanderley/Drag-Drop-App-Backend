@@ -6,6 +6,7 @@ const { isAuthenticated } = require('./../middleware/jwt.middleware.js');
 
 const User = require("../models/User.model")
 const Board = require('../models/Board.model')
+const Draft = require('../models/Draft.model.js')
 const Task = require('../models/Task.model')
 
 // Create new Board 
@@ -45,7 +46,23 @@ router.post('/board', isAuthenticated, async (req, res, next) => {
     }
 });
 
-// Add task to board
+// Add draft to the board
+router.post('/addDraft', isAuthenticated ,async (req, res, next) => {
+    const {title, boardId} = req.body
+    const tasks = []
+
+    if(title.trim() === '' || !boardId) return
+       
+    try{
+        const newDraft = await Draft.create({title, tasks, board: boardId})
+
+        await newDraft.save()
+
+        res.status(200).json({message: 'Draft was successfully created 👀'})
+    }catch(err){
+        res.status(500).json({message: 'Could not create new Draft 🤷‍♂️'})
+    }
+})
 
 
 module.exports = router;
