@@ -10,10 +10,12 @@ const Draft = require('../models/Draft.model.js')
 const Task = require('../models/Task.model')
 
 // Create new Board 
-router.post('/board', isAuthenticated, async (req, res, next) => {
+router.post('/addBoard', isAuthenticated, async (req, res, next) => {
     const { title } = req.body;
     console.log('title:', title)
     const userId = req.payload._id;
+
+    if(title.trim() === '') res.status(400).json({ message: "Empty request string" });
 
     try {
         const foundUser = await User.findOne({ _id: userId });
@@ -61,6 +63,25 @@ router.post('/addDraft', isAuthenticated ,async (req, res, next) => {
         res.status(200).json({message: 'Draft was successfully created 👀'})
     }catch(err){
         res.status(500).json({message: 'Could not create new Draft 🤷‍♂️'})
+    }
+})
+
+
+router.get('/getBoards', isAuthenticated, async(req,res,next)=>{
+    const userId = req.payload._id; 
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        res.status(400).json({ message: "Specified userId is not valid" });
+        return;
+      }
+
+    try{
+        const foundUser = await User.findById(userId).populate('boards'); 
+        const userBoards = foundUser.boards;
+
+        res.status(200).json({boards: userBoards, message: 'Successfully received the boards ✔'})
+    } catch(err){
+        res.status(500).json({message: 'Failed to get the boards ❌'})
     }
 })
 
