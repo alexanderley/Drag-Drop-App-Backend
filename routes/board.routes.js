@@ -60,13 +60,23 @@ router.post('/addDraft', isAuthenticated ,async (req, res, next) => {
 
         await newDraft.save()
 
-        res.status(200).json({message: 'Draft was successfully created 👀'})
+        const board = await Board.findById(boardId);
+
+        if(!board){
+            res.status(400).json({message: 'No Board found, for the draft 🤷‍♂️'})
+        }
+        
+        board.drafts.push(newDraft)
+
+        await board.save();
+
+        res.status(200).json({message: 'Draft was successfully created and added to the board 👀'})
     }catch(err){
         res.status(500).json({message: 'Could not create new Draft 🤷‍♂️'})
     }
 })
 
-router.get('/getDrafts/:boardId', async (req, res, next) => {
+router.get('/getDrafts/:boardId',isAuthenticated, async (req, res, next) => {
     const { boardId } = req.params;
     console.log('boardId 🛹: ', boardId);
   
@@ -77,8 +87,9 @@ router.get('/getDrafts/:boardId', async (req, res, next) => {
   
     try {
       const foundBoard = await Board.findById(boardId).populate('drafts');
-      console.log('This is the Boards: 🛹', foundBoard);
-      res.status(200).json({ foundBoard });
+      console.log('This is the Boards: 🛹', foundBoard.drafts);
+      const drafts = foundBoard.drafts;
+      res.status(200).json({ drafts });
     } catch (err) {
       res.status(500).json({ message: "Could not get Drafts" });
     }
