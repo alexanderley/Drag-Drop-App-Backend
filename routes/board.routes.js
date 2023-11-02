@@ -66,6 +66,24 @@ router.post('/addDraft', isAuthenticated ,async (req, res, next) => {
     }
 })
 
+router.get('/getDrafts/:boardId', async (req, res, next) => {
+    const { boardId } = req.params;
+    console.log('boardId 🛹: ', boardId);
+  
+    if (!mongoose.Types.ObjectId.isValid(boardId)) {
+      res.status(400).json({ message: "Specified boardId is not valid" });
+      return;
+    }
+  
+    try {
+      const foundBoard = await Board.findById(boardId).populate('drafts');
+      console.log('This is the Boards: 🛹', foundBoard);
+      res.status(200).json({ foundBoard });
+    } catch (err) {
+      res.status(500).json({ message: "Could not get Drafts" });
+    }
+  });
+
 
 router.get('/getBoards', isAuthenticated, async(req,res,next)=>{
     const userId = req.payload._id; 
