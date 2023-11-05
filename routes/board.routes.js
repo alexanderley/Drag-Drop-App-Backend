@@ -48,6 +48,25 @@ router.post('/addBoard', isAuthenticated, async (req, res, next) => {
     }
 });
 
+router.get('/getBoards', isAuthenticated, async(req,res,next)=>{
+    const userId = req.payload._id; 
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        res.status(400).json({ message: "Specified userId is not valid" });
+        return;
+      }
+
+    try{
+        const foundUser = await User.findById(userId).populate('boards'); 
+        const userBoards = foundUser.boards;
+
+        res.status(200).json({boards: userBoards, message: 'Successfully received the boards ✔'})
+    } catch(err){
+        res.status(500).json({message: 'Failed to get the boards ❌'})
+    }
+})
+
+
 // Add draft to the board
 router.post('/addDraft', isAuthenticated ,async (req, res, next) => {
     const {title, boardId} = req.body
@@ -86,7 +105,10 @@ router.get('/getDrafts/:boardId',isAuthenticated, async (req, res, next) => {
     }
   
     try {
-      const foundBoard = await Board.findById(boardId).populate('drafts');
+        const foundBoard = await Board.findById(boardId).populate({
+            path: 'drafts',
+            populate: { path: 'tasks' }
+        });
       console.log('This is the Boards: 🛹', foundBoard.drafts);
       const drafts = foundBoard.drafts;
       res.status(200).json({ drafts });
@@ -96,23 +118,47 @@ router.get('/getDrafts/:boardId',isAuthenticated, async (req, res, next) => {
   });
 
 
-router.get('/getBoards', isAuthenticated, async(req,res,next)=>{
-    const userId = req.payload._id; 
+router.post('/addTask', isAuthenticated, async (req, res, next) => {
+    const { draftId, title } = req.body;
+    
+    try {
+        const draft = await Draft.findById(draftId);
 
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-        res.status(400).json({ message: "Specified userId is not valid" });
-        return;
-      }
+        if (!draft) {
+            res.status(500).json({ message: 'Could not find draft ❌' });
+            return;
+        }
 
-    try{
-        const foundUser = await User.findById(userId).populate('boards'); 
-        const userBoards = foundUser.boards;
+        const subtasks = [];
 
-        res.status(200).json({boards: userBoards, message: 'Successfully received the boards ✔'})
-    } catch(err){
-        res.status(500).json({message: 'Failed to get the boards ❌'})
+        const newTask = await Task.create({ title, subtasks });
+        draft.tasks.push(newTask); // Use 'draft' instead of 'foundDraft'
+
+        await draft.save();
+        res.status(200).json({ message: 'Task added successfully ✅' });
+
+    } catch (err) {
+        res.status(500).json({ message: 'Could not add a new task ❌' });
     }
-})
+});
+
+
+// router.post('/getTask', isAuthenticated, async(req, res, next)=>{
+//     const {draftId} = req.body
+
+
+//     try{
+//         const draft  = await Draft.findById(draftId).popular
+//         console.log('this is the draft 🍺', draft);
+
+
+
+//     }catch(err){
+
+//     }
+// })
+
+
 
 
 module.exports = router;
