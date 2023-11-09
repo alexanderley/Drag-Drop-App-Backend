@@ -118,20 +118,32 @@ router.get('/getDrafts/:boardId',isAuthenticated, async (req, res, next) => {
     }
   });
 
-  router.put('/updateDrafts', isAuthenticated, async(req, res, next)=>{
-    const{boardId, drafts} = req.body
-    console.log('req.body', boardId, drafts);
+  router.put('/updateDrafts', isAuthenticated, async(req, res, next) => {
+    const {boardId, drafts} = req.body
+    console.log('drafts 🌭', drafts.length);
+
 
     try{
         const foundBoard = await Board.findById(boardId)
-        console.log('foundBoard 🛹', foundBoard);
         foundBoard.drafts = drafts;
+
+        drafts.map(async (draft, index)=>{
+            const id = draft._id; 
+            const foundDraft = await Draft.findById(id)
+            console.log('😁 found Draft', foundDraft)
+            foundDraft.tasks = drafts[index].tasks
+            await foundDraft.save()
+        })
+
+  
         await foundBoard.save();
         res.status(200).json({message: 'Board got updatet succesfully!'})
     }catch(err){
         res.status(500).json({message: 'Could not update the drafts!'})
     }
   })
+
+
 
 
 router.post('/addTask', isAuthenticated, async (req, res, next) => {
@@ -148,7 +160,7 @@ router.post('/addTask', isAuthenticated, async (req, res, next) => {
         const subtasks = [];
 
         const newTask = await Task.create({ title, subtasks });
-        draft.tasks.push(newTask); // Use 'draft' instead of 'foundDraft'
+        draft.tasks.push(newTask);
 
         await draft.save();
         res.status(200).json({ message: 'Task added successfully ✅' });
