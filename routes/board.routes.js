@@ -103,6 +103,7 @@ router.get('/getDrafts/:boardId',isAuthenticated, async (req, res, next) => {
       res.status(400).json({ message: "Specified boardId is not valid" });
       return;
     }
+
   
     try {
         const foundBoard = await Board.findById(boardId).populate({
@@ -116,6 +117,21 @@ router.get('/getDrafts/:boardId',isAuthenticated, async (req, res, next) => {
       res.status(500).json({ message: "Could not get Drafts" });
     }
   });
+
+  router.put('/updateDrafts', isAuthenticated, async(req, res, next)=>{
+    const{boardId, drafts} = req.body
+    console.log('req.body', boardId, drafts);
+
+    try{
+        const foundBoard = await Board.findById(boardId)
+        console.log('foundBoard 🛹', foundBoard);
+        foundBoard.drafts = drafts;
+        await foundBoard.save();
+        res.status(200).json({message: 'Board got updatet succesfully!'})
+    }catch(err){
+        res.status(500).json({message: 'Could not update the drafts!'})
+    }
+  })
 
 
 router.post('/addTask', isAuthenticated, async (req, res, next) => {
@@ -141,24 +157,6 @@ router.post('/addTask', isAuthenticated, async (req, res, next) => {
         res.status(500).json({ message: 'Could not add a new task ❌' });
     }
 });
-
-
-// router.post('/getTask', isAuthenticated, async(req, res, next)=>{
-//     const {draftId} = req.body
-
-
-//     try{
-//         const draft  = await Draft.findById(draftId).popular
-//         console.log('this is the draft 🍺', draft);
-
-
-
-//     }catch(err){
-
-//     }
-// })
-
-
 
 
 module.exports = router;
