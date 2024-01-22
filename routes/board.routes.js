@@ -48,29 +48,40 @@ router.post('/addBoard', isAuthenticated, async (req, res, next) => {
     }
 });
 
-router.get('/getBoards', isAuthenticated, async(req,res,next)=>{
-    const userId = req.payload._id; 
-
+router.get('/getBoards', isAuthenticated, async (req, res, next) => {
+    const userId = req.payload._id;
+  
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-        res.status(400).json({ message: "Specified userId is not valid" });
-        return;
-      }
-
-    try{
-        const foundUser = await User.findById(userId).populate('boards'); 
-        const userBoards = foundUser.boards;
-
-        res.status(200).json({boards: userBoards, message: 'Successfully received the boards ✔'})
-    } catch(err){
-        res.status(500).json({message: 'Failed to get the boards ❌'})
+      res.status(400).json({ message: "Specified userId is not valid" });
+      return;
     }
-})
+  
+    try {
+      const foundUser = await User.findById(userId).populate({
+        path: 'boards',
+        populate: {
+          path: 'drafts',
+          populate: {
+            path: 'tasks', // If tasks also need to be populated
+          },
+        },
+      });
+  
+      const userBoards = foundUser.boards;
+  
+      res.status(200).json({ boards: userBoards, message: 'Successfully received the boards ✔' });
+    } catch (err) {
+      res.status(500).json({ message: 'Failed to get the boards ❌' });
+    }
+  });
 
 
 // Add draft to the board
 router.post('/addDraft', isAuthenticated ,async (req, res, next) => {
     const {title, boardId} = req.body
     const tasks = []
+
+    console.log('title + boardId', title, boardId);
 
     if(title.trim() === '' || !boardId) return
        
@@ -88,7 +99,7 @@ router.post('/addDraft', isAuthenticated ,async (req, res, next) => {
         board.drafts.push(newDraft)
 
         await board.save();
-
+        console.log('Added to the database 🌭');
         res.status(200).json({message: 'Draft was successfully created and added to the board 👀'})
     }catch(err){
         res.status(500).json({message: 'Could not create new Draft 🤷‍♂️'})
