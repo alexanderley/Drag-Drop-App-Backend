@@ -158,25 +158,27 @@ router.get('/getDrafts/:boardId',isAuthenticated, async (req, res, next) => {
 
 
 router.post('/addTask', isAuthenticated, async (req, res, next) => {
+ 
     const { draftId, title } = req.body;
+    console.log(draftId);
     
     try {
         const draft = await Draft.findById(draftId);
-
         if (!draft) {
             res.status(500).json({ message: 'Could not find draft ❌' });
             return;
-        }
+        }    
 
         const subtasks = [];
-
+    
         const newTask = await Task.create({ title, subtasks });
         draft.tasks.push(newTask);
-
+       
         await draft.save();
-        res.status(200).json({ message: 'Task added successfully ✅' });
-
+       
+        res.status(200).json({ message: 'Task added successfully ✅' , newTask  });
     } catch (err) {
+      console.error(err);
         res.status(500).json({ message: 'Could not add a new task ❌' });
     }
 });
